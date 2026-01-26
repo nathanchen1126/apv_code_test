@@ -1,0 +1,13 @@
+请你为我写一个python需求文档，完成将来自osm下载的分省的shp数据，提取合并的工作。
+1、我的数据保存在D:\pv\data\osm这个路径下，有29个文件夹。每个文件夹中有shp文件。遍历这些文件夹，找到所有名字为gis_osm_transport_free_1的文件，提取其中的code字段为8200、8201、8202、8221和gis_osm_buildings_a_free_1文件中code字段为1500的数据。
+2、将上述来自两个文件，五个字段的数据整合成为一个面，最终形成一个全国的shp数据，这个数据包括上述五个字段中的所有面。
+3、计算这些shp的面积，删除掉小于5000平方米的面。
+4、将形成的shp数据保存到D:\pv\data这个路径下
+
+相同的要求，我写需求文档，完成合并osm、greenhouse和mine的数据的功能
+1、我的osm数据保存为"D:\pv\data\national_osm_combined.shp"。greenhouse数据保存在D:\pv\data\greenhouse文件夹中。mine数据保存在"D:\pv\data\mine_area"文件夹中。气候区面数据保存在D:\pv\data\Chinese_climate。命名为：华北湿润半湿润暖温带（climate_hb)、西北荒漠地区climate_xb、华中华南湿润亚热带climate_hz 东北湿润半湿润温带climate_db，内蒙草原地区climate_nm 青藏高原climate_qz、华南湿润热带地区climate_hn。一共有七个
+2、请你为我将首先根据上述气候区shp，分别裁剪上面的这些数据，例如对于climate_hb，命名为hb_nega_osm,hb_nega_greenhouse,hb_nega_mine
+3、为hb_nega_greenhouse增加一个code字段，值为1
+4、为hb_nega_mine增加一个code字段，值为2
+5、合并上述三个裁剪的的shp，命名为hb_nega
+6、保存路径放在"D:\pv\data\nega_xx"下。xx为具体的气候区名称，例如hb，hz，xb等，参考气候区命名。
