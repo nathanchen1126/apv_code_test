@@ -5,7 +5,7 @@ import geopandas as gpd
 from shapely.geometry import GeometryCollection
 
 # 输入数据
-PATH_2023 = r"D:\pv\result\qz\qz_merge\APV_qz_merge.shp"  # 待进行后处理的数据
+PATH_2023 = r"D:\pv\result\hz\apv_hz_raster_block_polygon.shp"  # 待进行后处理的数据
 PATH_2024 = r"D:\pv\grw_microsoft\grw_2024q2_China_only.gpkg"  # 全国数据源；如有多个图层可在此指定；留空默认第一个
 GPKG_LAYER = None
 # 2022 历史数据（用于向前继承补全）
@@ -16,7 +16,7 @@ BBOX_CRS = "EPSG:4326"
 # 输出目录：与 PATH_2023 同目录
 OUTPUT_DIR = os.path.dirname(PATH_2023)
 # 输出文件名
-OUTPUT_NAME = "APV_qz_merge_2023_postprocess.shp" #需要修改，后处理文件名称
+OUTPUT_NAME = "APV_hz_merge_2023_postprocess.shp" #需要修改，后处理文件名称
 
 
 def safe_read(path: str, **kwargs) -> gpd.GeoDataFrame:

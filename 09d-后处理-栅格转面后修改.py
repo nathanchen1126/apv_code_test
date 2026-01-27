@@ -5,7 +5,7 @@ import os
 import geopandas as gpd
 
 # 源 Shapefile 路径（原地覆盖）
-SRC_PATH = r"D:\pv\result\hz\APV_hz_2023_postprocess.shp"  # 需要修改的文件
+SRC_PATH = r"D:\pv\result\hz\APV_hz_merge_2023_postprocess.shp"  # 需要修改的文件
 
 
 def replace_shapefile(tmp_base: str, target_base: str) -> None:
