@@ -22,7 +22,7 @@ import pandas as pd
 
 CONFIG = {
     # 需要批处理的目录
-    "input_dir": Path(r"D:\pv\result\result_postprocess"),
+    "input_dir": Path(r"D:\pv\result\result_merge_postprocess"),
     # 匹配规则：按需改为 "APV_*_postprocess.shp" 等
     "pattern": "*.shp",
     # True: 原地覆盖写回；False: 另存为 *_no0.shp
