@@ -10,7 +10,7 @@ from rasterio.features import shapes
 from shapely.geometry import shape
 
 # 用户默认输入栅格路径
-DEFAULT_RASTER = r"D:\pv\result\hz\APV_hz_raster.tif"
+DEFAULT_RASTER = r"D:\pv\result\hz\apv_hz_block\apv_hz_raster_block.tif"
 
 
 def parse_values(raw: Optional[List[float]]) -> Optional[List[float]]:
