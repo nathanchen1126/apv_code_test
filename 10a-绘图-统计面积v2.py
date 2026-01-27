@@ -1,7 +1,4 @@
-"""
-根据面积统计提示词：合并 APV，统计 APV 与 GRW 面积到省/市/县，输出 CSV。
-"""
-
+#合并merge_postprocess，分省市县统计面积
 from pathlib import Path
 import warnings
 
@@ -13,11 +10,11 @@ warnings.filterwarnings("ignore")
 
 # ================= 配置 =================
 CONFIG = {
-    "apv_dir": Path(r"D:\pv\result\result_postprocess"),
-    "apv_merge_name": "apv_2023_all_merge.shp",
-    "province_path": Path(r"D:\矢量地图\2023行政区划\省shp"),
-    "city_path": Path(r"D:\矢量地图\2023行政区划\市shp"),
-    "county_path": Path(r"D:\矢量地图\2023行政区划\县shp"),
+    "apv_dir": Path(r"D:\pv\result\result_merge_postprocess"),
+    "apv_merge_name": "apv_2023_all_merge_block.shp",
+    "province_path": Path(r"D:\矢量地图\2023行政区划\省.shp"),
+    "city_path": Path(r"D:\矢量地图\2023行政区划\市.shp"),
+    "county_path": Path(r"D:\矢量地图\2023行政区划\县.shp"),
     "calc_crs": "EPSG:32648",
     "gpkg_path": Path(r"D:\pv\grw_microsoft\grw_2024q2_China_only.gpkg"),
     "output_dir": Path(r"D:\pv\result"),
@@ -31,7 +28,7 @@ def ensure_output_dir() -> None:
 
 
 def merge_apv_shps() -> gpd.GeoDataFrame:
-    """合并后处理 APV SHP 到 apv_2023_all_merge.shp"""
+    """合并后处理 APV SHP 到 apv_2023_all_merge_block.shp"""
     apv_dir = CONFIG["apv_dir"]
     merge_path = apv_dir / CONFIG["apv_merge_name"]
 
