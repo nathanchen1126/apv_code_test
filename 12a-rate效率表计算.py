@@ -115,7 +115,7 @@ def low_memory_zonal_mean(geoms, raster_path):
 # ==============================================================================
 # 核心计算
 # ==============================================================================
-def compute_ndvi_6000m():
+def compute_ndvi():
 
     with rasterio.open(NDVI_MAX_PATH) as src:
         raster_crs = src.crs
@@ -135,9 +135,9 @@ def compute_ndvi_6000m():
     apv_buf = apv.geometry.buffer(BUFFER_RADIUS)
     apv_buf_geo = gpd.GeoSeries(apv_buf, crs=apv.crs).to_crs(raster_crs)
 
-    apv["ndvi_mean_6000m"] = low_memory_zonal_mean(apv_buf_geo, NDVI_MAX_PATH)
+    apv["ndvi_mean"] = low_memory_zonal_mean(apv_buf_geo, NDVI_MAX_PATH)
 
-    apv_out = apv[["area", "ndvi_mean_6000m"]]
+    apv_out = apv[["area", "ndvi_mean"]]
     apv_out.to_excel(OUT_APV, index=False)
 
     # --------------------------------------------------------------------------
@@ -155,9 +155,9 @@ def compute_ndvi_6000m():
     capv_buf = capv.geometry.buffer(BUFFER_RADIUS)
     capv_buf_geo = gpd.GeoSeries(capv_buf, crs=capv.crs).to_crs(raster_crs)
 
-    capv["ndvi_mean_6000m"] = low_memory_zonal_mean(capv_buf_geo, NDVI_MAX_PATH)
+    capv["ndvi_mean"] = low_memory_zonal_mean(capv_buf_geo, NDVI_MAX_PATH)
 
-    capv_out = capv[["area", "ndvi_mean_6000m"]]
+    capv_out = capv[["area", "ndvi_mean"]]
     capv_out.to_excel(OUT_CAPV, index=False)
 
     # --------------------------------------------------------------------------
@@ -176,5 +176,5 @@ def compute_ndvi_6000m():
 # ==============================================================================
 if __name__ == "__main__":
     t0 = time.time()
-    compute_ndvi_6000m()
+    compute_ndvi()
     print(f"完成，耗时 {time.time() - t0:.2f} 秒")
