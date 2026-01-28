@@ -21,26 +21,60 @@ from rasterio.windows import Window
 
 warnings.filterwarnings("ignore")
 
-# -------------------- 路径配置 --------------------
+# ==============================================================================
+# 路径配置
+# ==============================================================================
 NDVI_MAX_PATH = Path(r"D:\pv\scenario\ndvi_max_2023.tif")
 APV_PATH = Path(r"D:\pv\result\result_merge_postprocess\apv_2023_all_merge_block.shp")
 CLIMATE_PATH = Path(r"D:\pv\data\Chinese_climate\Chinese_climate.shp")
 GRW_CROP_PATH = Path(r"D:\pv\grw_microsoft\grw_2023_crop.shp")
 
-OUT_APV = Path(r"D:\pv\scenario\apv_ndvimean.xlsx")
+OUT_APV  = Path(r"D:\pv\scenario\apv_ndvimean.xlsx")
 OUT_CAPV = Path(r"D:\pv\scenario\capv_ndvimean.xlsx")
 
-# -------------------- 空间参数 --------------------
-BUFFER_RADIUS = 6000   # ★ MOD：统一 6000 m
+# ==============================================================================
+# 空间参数
+# ==============================================================================
+BUFFER_RADIUS = 6000   # 6000 m 缓冲区
 
-# -------------------- 工具函数（完全复用） --------------------
+# ==============================================================================
+# climate_zone → area 映射表
+# ==============================================================================
+AREA_MAP = {
+    "中温带半干旱地区": "NM",
+    "中温带半湿润地区": "DB",
+    "中温带干旱地区":   "XB",
+    "北亚热带湿润地区": "HZ",
+    "暖温带半湿润地区": "HB",
+    "边缘热带湿润地区": "HN",
+    "高原温带半干旱地区": "QZ"
+}
+
+# ==============================================================================
+# 工具函数
+# ==============================================================================
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
+
+def safe_read_vector(path: Path) -> gpd.GeoDataFrame:
+    for enc in [None, "utf-8", "gbk", "gb18030"]:
+        try:
+            return gpd.read_file(path, encoding=enc)
+        except Exception:
+            continue
+    raise RuntimeError(f"无法读取 {path}")
+
+def clean_geoms(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
+    if not gdf.is_valid.all():
+        gdf.loc[~gdf.is_valid, "geometry"] = gdf.loc[~gdf.is_valid, "geometry"].buffer(0)
+    return gdf
 
 def low_memory_zonal_mean(geoms, raster_path):
     results = [np.nan] * len(geoms)
     with rasterio.open(raster_path) as src:
         height, width = src.height, src.width
+
         for i, geom in enumerate(tqdm(geoms, desc="  Zonal mean", unit="poly")):
             if geom is None or geom.is_empty:
                 continue
@@ -78,33 +112,25 @@ def low_memory_zonal_mean(geoms, raster_path):
                 results[i] = np.nan
     return results
 
-def safe_read_vector(path: Path) -> gpd.GeoDataFrame:
-    for enc in [None, "utf-8", "gbk", "gb18030"]:
-        try:
-            return gpd.read_file(path, encoding=enc)
-        except Exception:
-            continue
-    raise RuntimeError(f"无法读取 {path}")
-
-def clean_geoms(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
-    if not gdf.is_valid.all():
-        gdf.loc[~gdf.is_valid, "geometry"] = gdf.loc[~gdf.is_valid, "geometry"].buffer(0)
-    return gdf
-
-# -------------------- 核心计算 --------------------
+# ==============================================================================
+# 核心计算
+# ==============================================================================
 def compute_ndvi_6000m():
 
     with rasterio.open(NDVI_MAX_PATH) as src:
         raster_crs = src.crs
 
-    # ---------- APV ----------
+    # --------------------------------------------------------------------------
+    # APV
+    # --------------------------------------------------------------------------
     apv = clean_geoms(safe_read_vector(APV_PATH))
     climate = clean_geoms(safe_read_vector(CLIMATE_PATH)).to_crs(apv.crs)
 
     apv = gpd.sjoin(apv, climate, how="left", predicate="intersects")
     zone_col = next((c for c in apv.columns if "climate" in c.lower()), "climate_zone")
-    apv["area"] = apv[zone_col].fillna("Unknown")
+
+    apv["climate_zone"] = apv[zone_col].fillna("Unknown")
+    apv["area"] = apv["climate_zone"].map(AREA_MAP)
 
     apv_buf = apv.geometry.buffer(BUFFER_RADIUS)
     apv_buf_geo = gpd.GeoSeries(apv_buf, crs=apv.crs).to_crs(raster_crs)
@@ -114,13 +140,17 @@ def compute_ndvi_6000m():
     apv_out = apv[["area", "ndvi_mean_6000m"]]
     apv_out.to_excel(OUT_APV, index=False)
 
-    # ---------- CAPV（已剔除 APV） ----------
+    # --------------------------------------------------------------------------
+    # CAPV（已剔除 APV 的 CAPV 数据）
+    # --------------------------------------------------------------------------
     capv = clean_geoms(safe_read_vector(GRW_CROP_PATH))
     capv = capv.to_crs(apv.crs)
 
     capv = gpd.sjoin(capv, climate, how="left", predicate="intersects")
     zone_col = next((c for c in capv.columns if "climate" in c.lower()), "climate_zone")
-    capv["area"] = capv[zone_col].fillna("Unknown")
+
+    capv["climate_zone"] = capv[zone_col].fillna("Unknown")
+    capv["area"] = capv["climate_zone"].map(AREA_MAP)
 
     capv_buf = capv.geometry.buffer(BUFFER_RADIUS)
     capv_buf_geo = gpd.GeoSeries(capv_buf, crs=capv.crs).to_crs(raster_crs)
@@ -130,8 +160,21 @@ def compute_ndvi_6000m():
     capv_out = capv[["area", "ndvi_mean_6000m"]]
     capv_out.to_excel(OUT_CAPV, index=False)
 
-# -------------------- 主程序 --------------------
+    # --------------------------------------------------------------------------
+    # 简单检查
+    # --------------------------------------------------------------------------
+    if apv_out["area"].isna().any():
+        print("⚠️ APV 中存在未映射的 climate_zone：")
+        print(apv.loc[apv_out["area"].isna(), "climate_zone"].unique())
+
+    if capv_out["area"].isna().any():
+        print("⚠️ CAPV 中存在未映射的 climate_zone：")
+        print(capv.loc[capv_out["area"].isna(), "climate_zone"].unique())
+
+# ==============================================================================
+# 主程序
+# ==============================================================================
 if __name__ == "__main__":
     t0 = time.time()
     compute_ndvi_6000m()
-    print(f"完成，用时 {time.time() - t0:.2f} 秒")
+    print(f"完成，耗时 {time.time() - t0:.2f} 秒")
