@@ -30,7 +30,7 @@ GRW_CROP_PATH = Path(r"D:\pv\grw_microsoft\grw_2023_crop.shp")
 APV_RATE_XLSX = Path(r"D:\pv\scenario\apv_efficiency_rate.xlsx")
 SCENARIO_XLSX = Path(r"D:\pv\scenario\ndvi_climate_change.xlsx")
 
-# -------------------- ★ 空间参数（可调试） --------------------
+# -------------------- 空间参数 --------------------
 IMPACT_RADIUS   = 6000    # 影响区半径
 BG_INNER_RADIUS = 6000    # 背景区下限
 BG_OUTER_RADIUS = 10000   # 背景区上限
